@@ -1,0 +1,51 @@
+// Prisma schema for CodeRelay — supports push history (last 5 snapshots).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// A code project. The endpointId is the ONLY identity used in API calls.
+/// displayName is just a human label and is NOT used for routing/lookup.
+model Project {
+  id           String       @id @default(cuid())
+  endpointId   String       @unique // 8-char permanent endpoint
+  displayName  String              // user-provided label only
+  createdAt    DateTime     @default(now())
+  lastPushedAt DateTime?
+  lastPulledAt DateTime?
+  pushCount    Int          @default(0)
+  pullCount    Int          @default(0)
+  snapshots    PushSnapshot[]
+  flashTokens  FlashToken[]
+}
+
+/// A single push = one snapshot. We keep the last 5 per project.
+/// Older snapshots are deleted (DB record + on-disk files).
+model PushSnapshot {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version    Int                  // 1 = oldest kept, 5 = newest (auto-incremented per project, may go higher)
+  fileCount  Int      @default(0)
+  totalBytes Int      @default(0)
+  format     String              // "zip" | "tar.gz"
+  createdAt  DateTime @default(now())
+
+  @@index([projectId, version])
+}
+
+/// One-time download token. 24 chars. Single-use, then invalidated.
+model FlashToken {
+  id        String   @id @default(cuid())
+  token     String   @unique // 24-char flash endpoint
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  usedAt    DateTime?
+}
