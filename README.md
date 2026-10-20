@@ -4,6 +4,14 @@ A no-auth code push/pull service. Create an 8-character endpoint ID, push code (
 
 **Repository:** https://github.com/sudaisalamboy/CodeRelay.git
 
+## Preview
+
+<p align="center">
+  <img src="preview/preview.png" alt="CodeRelay Preview" width="100%" />
+</p>
+
+> 📖 **Full setup instructions:** see [SETUP.md](SETUP.md) for detailed installation, configuration, and deployment guide.
+
 ## Features
 
 - **No Authentication**: Simple endpoint-based access control
